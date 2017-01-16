@@ -11,8 +11,9 @@ def keep_client_alive(fn):
 
     # The wrapper method which will get called instead of the decorated method:
     def wrapper(self, *args, **kwargs):
-        fn(self, *args, **kwargs)           # call the decorated method
         self.keepAlive()   # call the additional method
+        return fn(self, *args, **kwargs)           # call the decorated method
+        
 
     return wrapper  # return the wrapper method
 
@@ -40,47 +41,57 @@ class chat_client(object):
         else:
             return False
 
-    @keep_client_alive()
     def keepAlive(self):
         r.set(self.username, 1)
 
     #General Methods e.g. List all Users
 
-    @keep_client_alive()
+    @keep_client_alive
     def listAllUsers(self):
         keys = r.keys('user_*')
         if DEBUG:
             print("~KEYS user_*")
-            print("~~"+keys)
-        return keys    
+            print("~~"+str(keys))
+        return keys
 
     #Methods Message Releated
-    @keep_client_alive()
-    def sendMessageTo(name, message):
+    @keep_client_alive
+    def sendMessageTo(self, name, message):
         key = 'user_' + name + '$' + self.username
         if DEBUG:
             print("~RPUSH " + key + " \"" + message + " \"")
         r.rpush(key, message)
     
     @keep_client_alive
-    def getMessagesFrom(name):
+    def getMessagesFrom(self, name):
         key = self.username + "$" + "user_" + name
         messages = r.lrange(key, 0, -1)
         r.delete(key)
         if DEBUG:
             print("~LRANGE " + key)
-            print("~~" + messages)
+            print("~~" + ' '.join(messages))
             print("~DEL " + key)
         return messages
         
         
 
 def main():
+    username1 = "gunter"
+    username2 = "peter"
     user1 = chat_client("gunter")
     print(user1.checkIfAlive())
-#    r.set('user_jfnskan', 1)
-#    user_list = r.keys('user_*')
-#    print(user_list)
+    user2 = chat_client("peter")
+    print(user2.checkIfAlive())
+
+
+    print(user1.listAllUsers())
+    message1 = "Hello " + username1
+    print("Message 1: " + message1)
+    user2.sendMessageTo(username1, message1)
+    print("Got: " + ';'.join(user1.getMessagesFrom(username2)))
+
+
+
 
 if __name__ == "__main__":
     main()
