@@ -1,6 +1,6 @@
 import redis
 
-_DEBUG = False
+_DEBUG = True
 
 r = redis.Redis(
         host='127.0.0.1',
@@ -43,6 +43,10 @@ class chat_client(object):
 
     def _keepAlive(self):
         r.set(self.username, 1)
+        r.expire(self.username, 120)
+        if _DEBUG:
+            print("~SET " + self.username + ' ' + str(1))
+            print("~EXPIRE " + self.username + ' ' +str(120))
 
     #General Methods e.g. List all Users
 
