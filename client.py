@@ -68,14 +68,14 @@ class chat_client(object):
     #Methods Message Releated
     @_keep_client_alive
     def sendMessageTo(self, name, message):
-        key = 'user_' + name + '$' + self.username
+        key = '$user_' + name + '$' + self.username
         if _DEBUG:
             print("~RPUSH " + key + " \"" + message + " \"")
         r.rpush(key, message)
     
     @_keep_client_alive
     def getMessagesFrom(self, name):
-        key = self.username + "$" + "user_" + name
+        key = '$' + self.username + "$" + "user_" + name
         messages = r.lrange(key, 0, -1)
         r.delete(key)
         if _DEBUG:
